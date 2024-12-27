@@ -21,14 +21,47 @@
     <ClCompile Include="ShaderProgram.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Entity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Map.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ShaderProgram.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Entity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Map.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="glew32.dll" />
     <CopyFileToFolders Include="SDL2.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="assets\bounce.wav">
+      <Filter>Resource Files</Filter>
+    </Media>
+    <Media Include="assets\crypto.mp3" />
+    <Media Include="assets\dooblydoo.mp3" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="assets\font1.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="assets\george_0.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="assets\platformPack_tile027.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="assets\soph.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
