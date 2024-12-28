@@ -5,8 +5,9 @@
 #include "glm/glm.hpp"
 #include "ShaderProgram.h"
 enum EntityType { PLATFORM, PLAYER, ENEMY };
-enum AIType { WALKER, GUARD };
-enum AIState { WALKING, IDLE, ATTACKING };
+enum AIType { WALKER, GUARD, JUMPER }; 
+enum AIState { WALKING, IDLE, ATTACKING, JUMPING };
+
 
 
 enum AnimationDirection { LEFT, RIGHT, UP, DOWN };
@@ -78,13 +79,16 @@ public:
     // Overloading our methods to check for only the map
     void const check_collision_y(Map* map);
     void const check_collision_x(Map* map);
+    bool is_near_pit(Map* map) const;
+
 
     void update(float delta_time, Entity* player, Entity* collidable_entities, int collidable_entity_count, Map* map);
     void render(ShaderProgram* program);
 
-    void ai_activate(Entity* player);
-    void ai_walk();
+    void ai_activate(Entity* player, Map* map);
+    void ai_walk(Map* map);
     void ai_guard(Entity* player);
+    void ai_jump();
 
     void normalise_movement() { m_movement = glm::normalize(m_movement); }
 

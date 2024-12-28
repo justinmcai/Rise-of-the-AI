@@ -112,3 +112,10 @@ bool Map::is_solid(glm::vec3 position, float* penetration_x, float* penetration_
 
     return true;
 }
+
+glm::vec3 Map::get_world_position_from_tile(int tile_x, int tile_y) const
+{
+    float world_x = (tile_x + 0.5f) * m_tile_size;  // Center the object horizontally within the tile
+    float world_y = -(tile_y + 0.5f) * m_tile_size; // Center vertically and invert y-axis
+    return glm::vec3(world_x, world_y, 0.0f);       // z is 0 in a 2D game
+}

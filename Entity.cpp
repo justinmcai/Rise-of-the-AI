@@ -1,5 +1,6 @@
 #define GL_SILENCE_DEPRECATION
 #define STB_IMAGE_IMPLEMENTATION
+#define LOG(argument) std::cerr << argument << '\n'
 
 #ifdef _WINDOWS
 #include <GL/glew.h>
@@ -12,17 +13,30 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "ShaderProgram.h"
 #include "Entity.h"
+//#include <Windows.h>
+//#include <string>
+//
+//void log_to_output_window(const std::string& message)
+//{
+//    OutputDebugString(message.c_str());
+//    OutputDebugString("\n"); // Add a newline
+//}
 
-void Entity::ai_activate(Entity* player)
+
+void Entity::ai_activate(Entity* player, Map* map)
 {
     switch (m_ai_type)
     {
     case WALKER:
-        ai_walk();
+        ai_walk(map);
         break;
 
     case GUARD:
         ai_guard(player);
+        break;
+
+    case JUMPER:
+        ai_jump();
         break;
 
     default:
@@ -30,10 +44,16 @@ void Entity::ai_activate(Entity* player)
     }
 }
 
-void Entity::ai_walk()
+void Entity::ai_walk(Map* map)
 {
-    m_movement = glm::vec3(-1.0f, 0.0f, 0.0f);
+    // Reverse direction if colliding with walls or near a pit
+    if (m_collided_left || m_collided_right || is_near_pit(map))
+    {
+        m_movement.x *= -1;
+    }
 }
+
+
 
 void Entity::ai_guard(Entity* player)
 {
@@ -58,6 +78,15 @@ void Entity::ai_guard(Entity* player)
         break;
     }
 }
+
+void Entity::ai_jump()
+{
+    if (m_collided_bottom)
+    {
+        m_velocity.y = m_jumping_power; // Use jumping power
+    }
+}
+
 // Default constructor
 Entity::Entity()
     : m_position(0.0f), m_movement(0.0f), m_scale(1.0f, 1.0f, 0.0f), m_model_matrix(1.0f),
@@ -147,6 +176,32 @@ void Entity::draw_sprite_from_texture_atlas(ShaderProgram* program, GLuint textu
     glDisableVertexAttribArray(program->get_position_attribute());
     glDisableVertexAttribArray(program->get_tex_coordinate_attribute());
 }
+
+bool Entity::is_near_pit(Map* map) const
+{
+    float check_distance = m_width / 2 + 0.1f; // Probe slightly ahead of the entity
+    glm::vec3 probe;
+
+    // Determine the probe's position based on movement direction
+    if (m_movement.x > 0) // Moving right
+    {
+        probe = glm::vec3(m_position.x + check_distance, m_position.y - (m_height / 2 + 0.1f), m_position.z);
+    }
+    else if (m_movement.x < 0) // Moving left
+    {
+        probe = glm::vec3(m_position.x - check_distance, m_position.y - (m_height / 2 + 0.1f), m_position.z);
+    }
+    else
+    {
+        return false; // No movement; no pit avoidance needed
+    }
+
+    // Check if the tile below the probe is solid
+    float penetration_x = 0.0f, penetration_y = 0.0f;
+    return !map->is_solid(probe, &penetration_x, &penetration_y);
+}
+
+
 
 bool const Entity::check_collision(Entity* other) const
 {
@@ -308,8 +363,6 @@ void Entity::update(float delta_time, Entity* player, Entity* collidable_entitie
     m_collided_left = false;
     m_collided_right = false;
 
-    if (m_entity_type == ENEMY) ai_activate(player);
-
     if (m_animation_indices != NULL)
     {
         if (glm::length(m_movement) != 0)
@@ -340,6 +393,8 @@ void Entity::update(float delta_time, Entity* player, Entity* collidable_entitie
     m_position.x += m_velocity.x * delta_time;
     check_collision_x(collidable_entities, collidable_entity_count);
     check_collision_x(map);
+
+    if (m_entity_type == ENEMY) ai_activate(player, map);
 
     if (m_is_jumping)
     {

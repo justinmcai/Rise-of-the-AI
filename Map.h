@@ -44,6 +44,8 @@ public:
     void build();
     void render(ShaderProgram* program);
     bool is_solid(glm::vec3 position, float* penetration_x, float* penetration_y);
+    glm::vec3 get_world_position_from_tile(int tile_x, int tile_y) const;
+
 
     // Getters
     int const get_width()  const { return m_width; }

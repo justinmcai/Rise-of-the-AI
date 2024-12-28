@@ -23,6 +23,15 @@
 #include <vector>
 #include "Entity.h"
 #include "Map.h"
+#include <Windows.h>
+#include <string>
+
+void log_to_output_window(const std::string& message)
+{
+    OutputDebugString(message.c_str());
+    OutputDebugString("\n"); // Add a newline
+}
+
 
 // ————— GAME STATE ————— //
 struct GameState
@@ -61,6 +70,7 @@ constexpr float MILLISECONDS_IN_SECOND = 1000.0;
 
 constexpr char SPRITESHEET_FILEPATH[] = "assets/george_0.png",
 MAP_TILESET_FILEPATH[] = "assets/tileset.png",
+ENEMY_FILEPATH[] = "assets/soph.png",
 BGM_FILEPATH[] = "assets/dooblydoo.mp3",
 JUMP_SFX_FILEPATH[] = "assets/bounce.wav";
 
@@ -192,6 +202,29 @@ void initialise()
         PLAYER
     );
 
+    // ––––– Enemy ––––– //
+    GLuint enemy_texture_id = load_texture(ENEMY_FILEPATH);
+
+    g_game_state.enemies = new Entity[ENEMY_COUNT];
+
+    //// Enemy 1: Walker (ground level)
+    //g_game_state.enemies[0] = Entity(enemy_texture_id, 1.0f, 0.9f, 0.9f, ENEMY, WALKER, WALKING);
+    //g_game_state.enemies[0].set_position(g_game_state.map->get_world_position_from_tile(4, 0)); 
+    //g_game_state.enemies[0].set_movement(glm::vec3(-1.0f));
+    //g_game_state.enemies[0].set_acceleration(glm::vec3(0.0f, -9.81f, 0.0f));
+
+    //// Enemy 2: Guard (platform level)
+    //g_game_state.enemies[0] = Entity(enemy_texture_id, 1.0f, 0.9f, 0.9f, ENEMY, GUARD, IDLE);
+    //g_game_state.enemies[0].set_position(g_game_state.map->get_world_position_from_tile(7, 2)); 
+    //g_game_state.enemies[0].set_movement(glm::vec3(0.0f));
+    //g_game_state.enemies[0].set_acceleration(glm::vec3(0.0f, -9.81f, 0.0f));
+
+    // Enemy 3: Jumper (higher platform)
+    g_game_state.enemies[0] = Entity(enemy_texture_id, 1.0f, 0.9f, 0.9f, ENEMY, JUMPER, JUMPING);
+    g_game_state.enemies[0].set_position(g_game_state.map->get_world_position_from_tile(11, 1)); 
+    g_game_state.enemies[0].set_movement(glm::vec3(0.0f));
+    g_game_state.enemies[0].set_acceleration(glm::vec3(0.0f, -9.81f, 0.0f));
+    g_game_state.enemies[0].set_jumping_power(5.0f); // Adjust the value as needed
 
     // Jumping
     g_game_state.player->set_jumping_power(5.0f);
@@ -272,8 +305,25 @@ void update()
 
     while (delta_time >= FIXED_TIMESTEP)
     {
-        g_game_state.player->update(FIXED_TIMESTEP, g_game_state.player, NULL, 0,
-            g_game_state.map);
+        // Update player
+        g_game_state.player->update(FIXED_TIMESTEP, g_game_state.player, NULL, 0, g_game_state.map);
+
+        //// Update each enemy
+        //for (int i = 0; i < ENEMY_COUNT; i++)
+        //{
+        //    g_game_state.enemies[i].update(FIXED_TIMESTEP, g_game_state.player, NULL, 0, g_game_state.map);
+        //}
+
+        for (int i = 0; i < ENEMY_COUNT; i++)
+        {
+            log_to_output_window("Updating Enemy " + std::to_string(i));
+            g_game_state.enemies[i].update(FIXED_TIMESTEP, g_game_state.player, NULL, 0, g_game_state.map);
+            log_to_output_window("Enemy " + std::to_string(i) + " position: (" +
+                std::to_string(g_game_state.enemies[i].get_position().x) + ", " +
+                std::to_string(g_game_state.enemies[i].get_position().y) + ")");
+        }
+
+
         delta_time -= FIXED_TIMESTEP;
     }
 
@@ -291,8 +341,17 @@ void render()
 
     glClear(GL_COLOR_BUFFER_BIT);
 
-    g_game_state.player->render(&g_shader_program);
+    // Render map
     g_game_state.map->render(&g_shader_program);
+
+    // Render player
+    g_game_state.player->render(&g_shader_program);
+
+    // Render enemies
+    for (int i = 0; i < ENEMY_COUNT; i++)
+    {
+        g_game_state.enemies[i].render(&g_shader_program);
+    }
 
     SDL_GL_SwapWindow(g_display_window);
 }
